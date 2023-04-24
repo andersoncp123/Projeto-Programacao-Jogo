@@ -1,3 +1,5 @@
+//Grupo: Anderson André, Vitório Fernandes, Everton Aragão, João Frascisco
+
 #include "raylib.h"
 #include "raymath.h"
 #include <stdio.h>
@@ -37,6 +39,7 @@ int main(void)
     Texture2D moeda = LoadTexture("coin.png");
     Texture2D entrada = LoadTexture("entrada.png");
     Texture2D gameOver = LoadTexture("GameOver3.png");
+    Texture2D heart3 = LoadTexture("heart3.png");
 
     // Criação das plataformas do jogo com cores 
     EnvItem envItems[] = {    
@@ -84,27 +87,28 @@ int main(void)
 
     FILE *loadGame = fopen("PontosSalvos.csv","r");
 
-    int scoreSave;
+    int scoreSave, vidaSave;
 
     if (loadGame != NULL) { // le o arquivo e salva o ultimo score do jogador
         while (!feof(loadGame)) {
-            fscanf(loadGame, "%d", &scoreSave);
+            fscanf(loadGame, "%d;%d", &scoreSave,&vidaSave);
         }
     }
 
-    int score;
+    int score = 0, vida = 3, pontuação = 0;
 
-    if (scoreSave != 0 && sairTela == 1) score = scoreSave;
-    else score = 0;
+    if (scoreSave != 0 && sairTela == 1 && vidaSave != 0){
+        score = scoreSave;
+        vida = vidaSave;
+        pontuação = 1;
+    }
 
     FILE *saveGame = fopen("PontosSalvos.csv","w");
 
     bool pausa = false;
 
     // Loop do game
-    while (!WindowShouldClose()) 
- 
-    {
+    while (!WindowShouldClose()) {
         if (IsKeyPressed(KEY_UP) && player.canJump) PlaySound(som_Pular); // Som ao clicar no espaço para pular
         
         float deltaTime = GetFrameTime();
@@ -117,7 +121,7 @@ int main(void)
                     DrawTexture(texture,0,0, WHITE);
                     DrawTexture(moeda,8,20, WHITE);
 
-                    if (sairTela != 1 && scoreSave != 0){ // muda como aparece os pontos na tela 
+                    if (pontuação == 0 && scoreSave != 0){ // muda como aparece os pontos na tela 
                         DrawText("Pontuação:", 60, 25, 20, BLACK);
                         DrawText("Ultima Pontuação:", 60, 45, 20, BLACK);
                         DrawText(TextFormat("%04i", score), 180, 25, 20, BLACK);
@@ -128,6 +132,19 @@ int main(void)
                     }
 
                     DrawFPS(1180, 35);
+
+                    if(vida == 1){
+                        DrawTexture(heart3,20,80, WHITE);
+                    }
+                    if(vida == 2){
+                        DrawTexture(heart3,20,80, WHITE);
+                        DrawTexture(heart3,55,80, WHITE);
+                    }
+                    if(vida == 3){
+                        DrawTexture(heart3,20,80, WHITE);
+                        DrawTexture(heart3,55,80, WHITE);
+                        DrawTexture(heart3,90,80, WHITE);
+                    }
                     
                     // Atira os projéteis e detecta colisão
                     shoot(bullets, &bulletCount, &player, enemies, &score);
@@ -154,16 +171,22 @@ int main(void)
 
                     for (int i = 0; i < enemyCount; i++){ //caso um inimigo passe do jogador ele salva o jogo e aparece a tela de game over
                         if (enemies[i].x < 250){
-                            fprintf(saveGame,"%i",score);
-                            fclose(saveGame);
-                            while(!IsKeyPressed(KEY_ENTER) && !WindowShouldClose()){
-                                BeginDrawing();
-                                ClearBackground(RAYWHITE);
-                                DrawTexture(gameOver,0,0,WHITE);
-                                DrawText("Pressione Enter para sair", 1280 / 2 - MeasureText("Pressione Enter para sair", 30) / 2, 600, 30, GRAY);
-                                EndDrawing();
+                            if (vida > 1){
+                                vida -= 1;
+                                enemies[i].x = GetRandomValue(1000, 1500);
+                            }else{
+                                vida -= 1;
+                                fprintf(saveGame,"%i;%i",score,vida);
+                                fclose(saveGame);
+                                while(!IsKeyPressed(KEY_ENTER) && !WindowShouldClose()){
+                                    BeginDrawing();
+                                    ClearBackground(RAYWHITE);
+                                    DrawTexture(gameOver,0,0,WHITE);
+                                    DrawText("Pressione Enter para sair", 1280 / 2 - MeasureText("Pressione Enter para sair", 30) / 2, 600, 30, GRAY);
+                                    EndDrawing();
+                                }
+                                return 0;
                             }
-                            return 0;
                         }
                     }
 
@@ -180,15 +203,19 @@ int main(void)
                 EndMode2D();
             EndDrawing();
         }
-        else // Caso o jogo esteja pausado, apenas exibe uma mensagem na tela
-    {
+        else{ // Caso o jogo esteja pausado, apenas exibe uma mensagem na tela
         BeginDrawing();
         ClearBackground(RAYWHITE);
         DrawText("Jogo pausado (Pressione P para continuar)", 1280 / 2 - MeasureText("Jogo pausado (Pressione P para continuar)", 30) / 2, 720/2-30, 30, BLACK); 
         EndDrawing();
+        }
+    }
+     
+    if(vida != 0){
+        fprintf(saveGame,"%i;%i",score,vida);
+        fclose(saveGame);
     }
 
-}
     UnloadTexture(moeda);
     UnloadTexture(texture);
 
