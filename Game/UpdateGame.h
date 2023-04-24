@@ -16,7 +16,7 @@ typedef struct Player {
     Vector2 position;
     float speed;
     bool canJump;
-    Texture2D teste;
+    Texture2D tex;
 } Player;
 
 void UpdatePlayer(Player *player, EnvItem *envItems, int envItemsLength, float delta)
