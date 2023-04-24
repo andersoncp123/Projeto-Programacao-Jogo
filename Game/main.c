@@ -32,7 +32,7 @@ int main(void)
     player.position = (Vector2){ (1280/2)-300, 300};
     player.speed = 0;
     player.canJump = false;
-    player.teste = LoadTexture("boneco.png");
+    player.tex = LoadTexture("boneco.png");
 
     // Carregar imagens e texturas do jogo
     Texture2D texture = LoadTexture("imagem_jogo.png");
@@ -198,7 +198,7 @@ int main(void)
 
                     for (int i = 0; i < envItemsLength; i++) DrawRectangleRec(envItems[i].rect, envItems[i].color);
 
-                    DrawTexture(player.teste,player.position.x-20,player.position.y-70, WHITE);
+                    DrawTexture(player.tex,player.position.x-20,player.position.y-70, WHITE);
 
                 EndMode2D();
             EndDrawing();
